@@ -363,6 +363,13 @@ class Publication(CrisEntity):
                 [_k.split(':') for _k in data['exportauthors'].split('|')]
             ]
         )
+        # handle incomplete author/editor relation
+        if data.get('complete author relations', None) is None:
+            author_editor += " and et al."
+            bibdata['support_note'] = 'Author relations incomplete. ' + \
+                'You may find additional data in field \'author_hint\''
+            bibdata['author_hint'] = data.get('srcauthors', '')
+
         if publtype == 'editorial':
             bibdata['editor'] = author_editor
         else:
