@@ -358,11 +358,21 @@ class Publication(CrisEntity):
         if bibdata['type'] in ('phdthesis', 'masterthesis'):
             bibdata['school'] = 'Friedrich-Alexander-Universität Erlangen-Nürnberg'
 
-        author_editor = ' and '.join(
-            ['%s %s' % (_j, _i) for _i, _j in
-                [_k.split(':') for _k in data['exportauthors'].split('|')]
-            ]
-        )
+        if bibdata['type'] == 'unpublished' and not bibdata['note']:
+            bibdata['note'] = \
+                'https://cris.fau.de/converis/publicweb/Publication/%s' % data['id']
+
+        try:
+            author_editor = ' and '.join(
+                ['%s %s' % (_j, _i) for _i, _j in
+                    [_k.split(':') for _k in data['exportauthors'].split('|')]
+                ]
+            )
+        except AttributeError:
+            # exportauthors is set non-live, so it may be missing
+            # the dataset is incomplete, so there's no BibTeX output
+            return ''
+
         # handle incomplete author/editor relation
         if data.get('complete author relations', None) is None:
             author_editor += " and et al."
@@ -549,6 +559,22 @@ if __name__ == '__main__':
     from pprint import pprint
 
     p = Publications()
+    result = p.by_id("1060006")
+    # pprint(result)
+    print(result["1060006"].toBibTeX())
+    exit()
+
+    # result = p.by_orga(142131, None, disable_orga_check=True)
+    result = p.by_orga(142441, None, disable_orga_check=True)
+    # pprint(result)
+    for pp in result:
+        try:
+            result[pp].toBibTeX()
+        except Exception as E:
+            print(E)
+            import pdb; pdb.set_trace()
+
+    exit()
 
     selectors = {'publyear__gt': 2011}
     # one may init the class explicitly (otherwise this will happen implicitly)
