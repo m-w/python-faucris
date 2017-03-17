@@ -294,6 +294,8 @@ class Publication(CrisEntity):
         # map basic attributes
         # map type
         data = self._data
+        # from pprint import pprint
+        # pprint(data)
         publtype = data['publication type'].lower()
         types = {
             'journal article': 'article',
@@ -328,6 +330,7 @@ class Publication(CrisEntity):
             'url': data['cfuri'],
             'peerreviewed': data['peerreviewed'],
             'faupublication': data['fau publikation'],
+            'doi': data['doi'],
         }
         if bibdata['abstract'] is not None and bibdata['abstract'].startswith('<p>'):
             bibdata['abstract'] = bibdata['abstract'][3:-6].strip()
@@ -336,7 +339,6 @@ class Publication(CrisEntity):
         if bibdata['type'] in ('article'):
             bibdata['journal'] = data['journalname']
             bibdata['volume'] = data['book volume']
-            bibdata['doi'] = data['doi']
             bibdata['pages'] = data['pagesrange']
 
         if bibdata['type'] in ('book', 'incollection', 'editorial', 'inproceedings'):
@@ -347,13 +349,20 @@ class Publication(CrisEntity):
             bibdata['series'] = data['cfseries']
             bibdata['edition'] = data['cfedition']
             bibdata['address'] = data['cfcitytown']
+            bibdata['pages'] = data['pagesrange']
 
         if bibdata['type'] in ('incollection'):
             bibdata['booktitle'] = data['edited volumes']
-            bibdata['pages'] = data['pagesrange']
 
         if bibdata['type'] in ('inproceedings'):
             bibdata['booktitle'] = data['conference proceedings title']
+            # try to use conference name as fall-back
+            if bibdata['booktitle'] is None or not len(bibdata['booktitle']):
+                bibdata['booktitle'] = data['event title']
+            bibdata['venue'] = data['event location']
+            bibdata['date'] = data['event start date']
+            if bibdata['date'] is not None and data['event end date'] is not None:
+                bibdata['date'] += '/' + data['event end date']
 
         if bibdata['type'] in ('phdthesis', 'masterthesis'):
             bibdata['school'] = 'Friedrich-Alexander-Universität Erlangen-Nürnberg'
