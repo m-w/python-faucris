@@ -364,7 +364,7 @@ class Publication(CrisEntity):
 
         try:
             author_editor = ' and '.join(
-                ['%s %s' % (_j, _i) for _i, _j in
+                ['%s, %s' % (_i, _j) for _i, _j in
                     [_k.split(':') for _k in data['exportauthors'].split('|')]
                 ]
             )
@@ -559,9 +559,9 @@ if __name__ == '__main__':
     from pprint import pprint
 
     p = Publications()
-    result = p.by_id("1060006")
+    result = p.by_id("1009001")
     # pprint(result)
-    print(result["1060006"].toBibTeX())
+    print(result["1009001"].toBibTeX())
     exit()
 
     # result = p.by_orga(142131, None, disable_orga_check=True)
