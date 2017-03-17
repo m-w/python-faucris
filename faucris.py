@@ -354,7 +354,8 @@ class Publication(CrisEntity):
         if bibdata['type'] in ('incollection'):
             bibdata['booktitle'] = data['edited volumes']
 
-        if bibdata['type'] in ('inproceedings'):
+        if bibdata['type'] in ('inproceedings') or \
+                (bibdata['type'] in ('unpublished') and data['futurepublicationtype'].lower() == 'conference contribution'):
             bibdata['booktitle'] = data['conference proceedings title']
             # try to use conference name as fall-back
             if bibdata['booktitle'] is None or not len(bibdata['booktitle']):
@@ -568,9 +569,9 @@ if __name__ == '__main__':
     from pprint import pprint
 
     p = Publications()
-    result = p.by_id("1009001")
+    result = p.by_id("1060854")
     # pprint(result)
-    print(result["1009001"].toBibTeX())
+    print(result["1060854"].toBibTeX())
     exit()
 
     # result = p.by_orga(142131, None, disable_orga_check=True)
