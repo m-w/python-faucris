@@ -280,11 +280,13 @@ class Publication(CrisEntity):
         except KeyError:
             return 'Publication object (%d)' % id(self)
 
-    def toBibTeX(self):
+    def toBibTeX(self, mask_caps=True):
         """
         Returns BibTeX code for this publication.
 
-        :return: string (BibTeX)
+        :param {boolean} mask_caps Flag for masking capital letters in the
+                                    publications' title (default: true)
+        :return: {string} BibTeX data
         """
         try:
             import bibtexparser
@@ -394,6 +396,17 @@ class Publication(CrisEntity):
             bibdata['editor'] = author_editor
         else:
             bibdata['author'] = author_editor
+
+        # enclosing capital letters in title (default)
+        if mask_caps:
+            elements = re.findall('(\W+)?(\w+)', bibdata['title'])
+            _t = ''
+            for _i in elements:
+                if not _i[1].islower() and not _i[1].isdigit():
+                    _t += '%s{%s}' % _i
+                else:
+                    _t += '%s%s' % _i
+            bibdata['title'] = _t
 
         bibdb = bibtexparser.bibdatabase.BibDatabase()
 
