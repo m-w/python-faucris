@@ -236,6 +236,7 @@ class CrisEntity:
                     value = _c.xpath('./additionalInfo')[0].text
                 except:
                     value = None
+                data["%s_id" % name] = _c.xpath('./data')[0].text
             else:
                 value = _c.xpath('./data')[0].text
 
@@ -312,6 +313,20 @@ class Publication(CrisEntity):
                 'Diplomarbeit': 'masterthesis',
             },
         }
+        months = {
+            '9083': 'Jan',
+            '9084': 'Feb',
+            '9085': 'Mar',
+            '9086': 'Apr',
+            '9087': 'May',
+            '9088': 'Jun',
+            '9089': 'Jul',
+            '9090': 'Aug',
+            '9091': 'Sep',
+            '9092': 'Oct',
+            '9093': 'Nov',
+            '9094': 'Dec',
+        }
 
         # sub types ...
         if publtype == 'thesis':
@@ -328,14 +343,21 @@ class Publication(CrisEntity):
             'note': data['note'],
             'keywords': data['keywords'],
             'abstract': data['cfabstr'],
-            'month': data['monthcg'],
+            'month': data['monthcg_id'],
             'url': data['cfuri'],
             'peerreviewed': data['peerreviewed'],
             'faupublication': data['fau publikation'],
             'doi': data['doi'],
         }
+
         if bibdata['abstract'] is not None and bibdata['abstract'].startswith('<p>'):
             bibdata['abstract'] = bibdata['abstract'][3:-6].strip()
+
+        if bibdata['month'] is not None:
+            try:
+                bibdata['month'] = months.get(bibdata['month'], None)
+            except:
+                bibdata['month'] = None
 
         # type dependent
         if bibdata['type'] in ('article'):
@@ -584,9 +606,9 @@ if __name__ == '__main__':
     from pprint import pprint
 
     p = Publications()
-    result = p.by_id("1060854")
+    result = p.by_id("1060125")
     # pprint(result)
-    print(result["1060854"].toBibTeX())
+    print(result["1060125"].toBibTeX())
     exit()
 
     # result = p.by_orga(142131, None, disable_orga_check=True)
