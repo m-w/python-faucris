@@ -399,13 +399,15 @@ class Publication(CrisEntity):
 
         # enclosing capital letters in title (default)
         if mask_caps:
-            elements = re.findall('(\W+)?(\w+)', bibdata['title'])
+            elements = re.findall('(\W+)?(\w+)(\W+)?', bibdata['title'])
             _t = ''
             for _i in elements:
                 if not _i[1].islower() and not _i[1].isdigit():
-                    _t += '%s{%s}' % _i
+                    _t += '%s{%s}%s' % _i
                 else:
-                    _t += '%s%s' % _i
+                    _t += '%s%s%s' % _i
+            # remove double masks
+            _t = _t.replace('{{', '{').replace('}}', '}')
             bibdata['title'] = _t
 
         bibdb = bibtexparser.bibdatabase.BibDatabase()
