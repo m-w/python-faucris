@@ -8,6 +8,7 @@ Friedrich-Alexander-Universität Erlangen-Nürnberg)
 @contact: cris-support@fau.de
 """
 
+import re
 import collections
 from urllib import request as urllib_request
 
@@ -148,6 +149,28 @@ class FauCris:
         return idvalue
 
 
+class Usertags(FauCris):
+    """
+    Handle user tags
+    """
+    def __init__(self):
+        super(Usertags, self).__init__()
+
+    def by_orga(self, id_=None, selector=None):
+        template = [
+            "getrelated/organisation/%d/utag_has_orga",
+        ]
+        utags = self._fetch('usertag', Usertag, template, id_, selector)
+        return utags
+
+    def by_publ(self, id_=None, selector=None):
+        template = [
+            "getrelated/publication/%d/publ_has_utag",
+        ]
+        utags = self._fetch('usertag', Usertag, template, id_, selector)
+        return utags
+
+
 class Publications(FauCris):
     """
     handle publication requests
@@ -258,6 +281,16 @@ class Organization(CrisEntity):
         super(Organization, self).__init__(initial_data)
 
 
+class Usertag(CrisEntity):
+    """
+    Single usertag object
+    """
+    xpath = "//infoObject[@type='usertag']"
+
+    def __init__(self, initial_data=None):
+        super(Usertag, self).__init__(initial_data)
+
+
 class Publication(CrisEntity):
     """
     Single publication object
@@ -281,12 +314,14 @@ class Publication(CrisEntity):
         except KeyError:
             return 'Publication object (%d)' % id(self)
 
-    def toBibTeX(self, mask_caps=True):
+    def toBibTeX(self, mask_caps=True, override_id=None):
         """
         Returns BibTeX code for this publication.
 
         :param {boolean} mask_caps Flag for masking capital letters in the
                                     publications' title (default: true)
+        :param {string} override_id Set this id instead CRIS id (default: None)
+
         :return: {string} BibTeX data
         """
         try:
@@ -306,6 +341,7 @@ class Publication(CrisEntity):
             'editorial': 'book',
             'article in edited volumes': 'incollection',
             'conference contribution': 'inproceedings',
+            'unpublished': 'unpublished',
             # use subtypes
             'thesis': {
                 'Dissertation': 'phdthesis',
@@ -314,18 +350,18 @@ class Publication(CrisEntity):
             },
         }
         months = {
-            '9083': 'Jan',
-            '9084': 'Feb',
-            '9085': 'Mar',
-            '9086': 'Apr',
-            '9087': 'May',
-            '9088': 'Jun',
-            '9089': 'Jul',
-            '9090': 'Aug',
-            '9091': 'Sep',
-            '9092': 'Oct',
-            '9093': 'Nov',
-            '9094': 'Dec',
+            '20939': 'Jan',
+            '20928': 'Feb',
+            '20929': 'Mar',
+            '20930': 'Apr',
+            '20931': 'May',
+            '20932': 'Jun',
+            '20925': 'Jul',
+            '20926': 'Aug',
+            '20933': 'Sep',
+            '20934': 'Oct',
+            '20935': 'Nov',
+            '20936': 'Dec',
         }
 
         # sub types ...
@@ -336,7 +372,9 @@ class Publication(CrisEntity):
 
         # valid for all types
         bibdata = {
+            # later versions of bibtexparser require upper case: ID
             'id': 'faucris.%s' % (data['id']),
+            # later versions of bibtexparser required ENTRYTYPE instead of type
             'type': bibtype,
             'year': data['publyear'],
             'title': data['cftitle'],
@@ -349,6 +387,9 @@ class Publication(CrisEntity):
             'faupublication': data['fau publikation'],
             'doi': data['doi'],
         }
+
+        if override_id:
+            bibdata['id'] = override_id
 
         if bibdata['abstract'] is not None and bibdata['abstract'].startswith('<p>'):
             bibdata['abstract'] = bibdata['abstract'][3:-6].strip()
@@ -434,8 +475,11 @@ class Publication(CrisEntity):
 
         bibdb = bibtexparser.bibdatabase.BibDatabase()
 
-        # kick "None" attributes
-        _n = {k: v for k, v in bibdata.items() if v is not None}
+        # kick "None" attributes and mask underscores
+        _n = {
+            k: v.replace('_', '{\\_}') for k, v in bibdata.items()
+              if v is not None
+        }
         bibdb.entries.append(_n)
 
         return bibtexparser.dumps(bibdb)
@@ -606,17 +650,17 @@ if __name__ == '__main__':
     from pprint import pprint
 
     p = Publications()
-    result = p.by_id("1060125")
+    result = p.by_id("120722624")
     # pprint(result)
-    print(result["1060125"].toBibTeX())
+    print(result["120722624"].toBibTeX())
     exit()
 
     # result = p.by_orga(142131, None, disable_orga_check=True)
-    result = p.by_orga(142441, None, disable_orga_check=True)
+    result = p.by_orga(142199, None, disable_orga_check=True)
     # pprint(result)
     for pp in result:
         try:
-            result[pp].toBibTeX()
+            print(result[pp].toBibTeX())
         except Exception as E:
             print(E)
             import pdb; pdb.set_trace()
