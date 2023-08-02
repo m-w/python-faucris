@@ -229,6 +229,18 @@ class Publications(FauCris):
         publs = self._fetch('person', Publication, template, id_, selector)
         return publs
 
+    def by_equi(self, id_=None, selector=None):
+        """
+        Fetch publications denoted by equipment id(s).
+
+        :param id_: equipment id information (int, string, list, ...)
+        :param selector: filter operator
+        :return: list of Publication classes
+        """
+        template = ['getrelated/Equipment/%d/PUBL_has_EQUI']
+        publs = self._fetch('equipment', Publication, template, id_, selector)
+        return publs
+
 
 class CrisEntity:
     """
@@ -648,6 +660,11 @@ class Formatter:
 
 if __name__ == '__main__':
     from pprint import pprint
+
+    p = Publications()
+    result = p.by_equi("234581705")
+    pprint(result)
+    exit()
 
     p = Publications()
     result = p.by_id("120722624")
